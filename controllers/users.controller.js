@@ -15,8 +15,6 @@ const { AppError } = require("../utils/appError.util");
 
 dotenv.config({ path: "./config.env" });
 
-
-
 const getProductsUser = catchAsync(async (req, res, next) => {
   const { sessionUser } = req;
 
@@ -38,13 +36,17 @@ const getOrdersUser = catchAsync(async (req, res, next) => {
   const { sessionUser } = req;
 
   const orders = await Order.findAll({
-    where: { userId: sessionUser.id },
-    include: [{ model: Cart, include: [{ model: ProductsInCart }] }],
+    where: { userId: sessionUser.id, status: "active" },
+    include: {
+      model: Cart,
+      attributes: ["id", "userId", "status"],
+      include: {
+        model: ProductsInCart,
+        attributes: ["id", "productId", "quantity", "status"],
+        include: { model: Product, attributes: ["id", "title"] },
+      },
+    },
   });
-
-  if (!orders) {
-    return next(new AppError("this user has no orders", 404));
-  }
 
   res.status(200).json({
     status: "success",
@@ -58,16 +60,19 @@ const getOrderById = catchAsync(async (req, res, next) => {
 
   const order = await Order.findOne({
     where: { userId: sessionUser.id, id },
-    include: [
-      {
-        model: Cart,
-        include: [{ model: ProductsInCart, where: { status: "purchased" } }],
+    include: {
+      model: Cart,
+      attributes: ["id", "userId", "status"],
+      include: {
+        model: ProductsInCart,
+        attributes: ["id", "productId", "quantity", "status"],
+        include: { model: Product, attributes: ["id", "title"] },
       },
-    ],
+    },
   });
 
   if (!order) {
-    return next(new AppError("this user has no orders", 404));
+    return next(new AppError("this order not exist", 404));
   }
 
   res.status(200).json({
@@ -78,10 +83,6 @@ const getOrderById = catchAsync(async (req, res, next) => {
 
 const createUser = catchAsync(async (req, res, next) => {
   const { username, email, password, role } = req.body;
-
-  // if (role !== "admin" && role !== "normal") {
-  //   return next(new AppError("Invalid role", 400));
-  // }
 
   // Encrypt the password
   const salt = await bcrypt.genSalt(12);
@@ -119,7 +120,7 @@ const deleteUser = catchAsync(async (req, res, next) => {
 
   await user.update({ status: "deleted" });
 
-  res.status(204).json({ status: "success" });
+  res.status(200).json({ status: "success" });
 });
 
 const login = catchAsync(async (req, res, next) => {

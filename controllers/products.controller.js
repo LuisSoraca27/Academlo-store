@@ -1,6 +1,6 @@
 // models
 const { Product } = require("../models/products.model");
-const { Categories } = require("../models/categories.model")
+const { Categories } = require("../models/categories.model");
 const { User } = require("../models/user.model");
 const { ProductImg } = require("../models/productImgs.model");
 
@@ -11,8 +11,6 @@ const {
   getProductsImgsUrls,
   uploadProductImgs,
 } = require("../utils/fireBase.util");
-
-
 
 const createProduct = catchAsync(async (req, res, next) => {
   const { title, description, price, categoryId, quantity } = req.body;
@@ -37,20 +35,20 @@ const createProduct = catchAsync(async (req, res, next) => {
 });
 
 const getAllProducts = catchAsync(async (req, res, next) => {
-
   const products = await Product.findAll({
     where: { status: "active" },
     attributes: ["id", "title", "description", "createdAt"],
     include: [
       { model: User, attributes: ["id", "username"] },
-      { model: Categories,},
+      { model: Categories },
       {
-        model: ProductImg, attributes: ["id", "imgUrl", "productId", "createdAt"]
+        model: ProductImg,
+        attributes: ["id", "imgUrl", "productId", "createdAt"],
       },
     ],
-    });
+  });
 
-     await getProductsImgsUrls(products)
+  await getProductsImgsUrls(products);
 
   res.status(200).json({
     status: "success",
@@ -61,16 +59,19 @@ const getAllProducts = catchAsync(async (req, res, next) => {
 const getProductById = catchAsync(async (req, res, next) => {
   const { id } = req.params;
 
-  const product = await Product.findOne({
+  const product = await Product.findAll({
     where: { id, status: "active" },
     attributes: ["id", "title", "description", "createdAt"],
     include: [
       { model: User, attributes: ["id", "username"] },
       {
-        model: ProductImg, attributes: ["id", "imgUrl", "productId", "createdAt"]
+        model: ProductImg,
+        attributes: ["id", "imgUrl", "productId", "createdAt"],
       },
     ],
   });
+
+  await getProductsImgsUrls(product);
 
   res.status(200).json({
     status: "success",
@@ -107,8 +108,7 @@ const deleteProduct = catchAsync(async (req, res, next) => {
 });
 
 const getAllCategories = catchAsync(async (req, res, next) => {
-
-  const categories = Categories.findAll({ where: { status: "active" } });
+  const categories = await Categories.findAll({ where: { status: "active" } });
 
   res.status(200).json({
     status: "success",

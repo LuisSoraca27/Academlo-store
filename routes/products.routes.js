@@ -26,11 +26,12 @@ const { upload } = require("../utils/multer.util")
 
 const productsRouter = express.Router();
 
+productsRouter.get("/categories", getAllCategories)
+
 productsRouter.get("/", getAllProducts);
 
 productsRouter.get("/:id", getProductById);
 
-productsRouter.get("/categories", getAllCategories)
 
 // Protecting below endpoints
 productsRouter.use(protectSession);
@@ -43,7 +44,7 @@ productsRouter.delete("/:id" ,productExists, protectProductOwner, deleteProduct)
 
 productsRouter.post("/categories", createCategory)
 
-productsRouter.patch("/cotegories/:id", categoryExists, updateCategory)
+productsRouter.patch("/categories/:id", categoryExists, updateCategory)
 
 
 
