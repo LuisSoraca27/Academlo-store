@@ -73,8 +73,12 @@ const deleteProductInCart = catchAsync(async (req,res,next) => {
   const { productId } = req.params
 
   const productInCart = await ProductsInCart.findOne({
-    where: { productId, cartId: cart.id },
+    where: { productId, cartId: cart.id, status: 'active' },
   });
+
+  if(!productInCart) {
+    return next(new AppError('This product is not in your cart'))
+  }
 
   await productInCart.update({
     quantity: 0, status: 'removed'
